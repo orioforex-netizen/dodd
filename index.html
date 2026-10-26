@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1F3160"/><text x="50" y="60" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#F6E8D6" text-anchor="middle">DD</text></svg></template>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap">
+<script src="./dodd-photo.js"></script>
+<style>
+body{margin:0;background:#E7E3DC;-webkit-font-smoothing:antialiased}
+a{color:#3D6FB4}a:hover{color:#1F3160}
+input,textarea{font:inherit;color:inherit}
+input::placeholder,textarea::placeholder{color:#B8AF9F}
+@media print{
+@page{size:A4;margin:0}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{background:#fff}
+[data-screen-only]{display:none!important}
+[data-pages]{padding:0!important;gap:0!important}
+[data-page]{box-shadow:none!important;break-after:page;width:210mm!important;height:297mm!important}
+[data-pages]>[data-page]:last-child{break-after:auto}
+[data-photo]:has(dodd-photo:not([data-filled])),[data-photo-frame]:has(dodd-photo:not([data-filled])){visibility:hidden}
+input::placeholder,textarea::placeholder{color:transparent}
+}
+</style>
+</helmet>
+<div data-screen-only style="max-width:794px;margin:0 auto;padding:40px 24px 0;display:flex;flex-direction:column;gap:16px;font-family:'Bai Jamjuree',sans-serif;color:#1E2540">
+  <div style="display:flex;align-items:center;gap:14px">
+    <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:48px;height:48px;border-radius:10px;object-fit:cover">
+    <div style="flex:1;display:flex;flex-direction:column">
+      <div style="font-size:22px;font-weight:700">รายงานตรวจสภาพรถ DO DD</div>
+      <div style="font-size:13px;color:#6A6F80">คลิกช่องผลตรวจ พิมพ์หมายเหตุ คลิกหรือลากรูปมาวางในกรอบ (เลือกหลายรูปพร้อมกันได้ ระบบเติมช่องว่างถัดไปในหมวดให้) หรือกดปุ่ม “+ หลายรูป” ที่หัวหมวด · ชี้ที่รูป (หรือแตะบนแท็บเล็ต) เพื่อ ขยาย / เปลี่ยน / หมุน / ลบ · รูปแสดงเต็มภาพตามไฟล์ต้นฉบับ ไม่ตัดขอบ ไม่ลดความละเอียด · กรอบรูปที่ว่างจะไม่แสดงตอนพิมพ์</div>
+    </div>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;gap:9px;box-shadow:0 1px 2px rgba(30,37,64,.06),0 6px 20px rgba(30,37,64,.06)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+      <div style="font-size:15px;font-weight:700">ตรวจความครบถ้วนก่อนส่ง (QC)</div>
+      <div style="font-size:13px;color:#6A6F80">ลงผลแล้ว {{ done }}</div>
+    </div>
+    <sc-for list="{{ qc }}" as="q" hint-placeholder-count="2">
+      <div style="display:flex;gap:10px;font-size:13.5px;line-height:1.5"><span style="width:8px;height:8px;border-radius:50%;background:{{ q.c }};margin-top:7px;flex:none"></span><span>{{ q.msg }}</span></div>
+    </sc-for>
+    <sc-if value="{{ qcOk }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px;font-size:13.5px;color:#2F8A5B"><span style="width:8px;height:8px;border-radius:50%;background:#2F8A5B;margin-top:7px;flex:none"></span>ข้อมูลครบ พร้อมส่งรายงาน</div>
+    </sc-if>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px">
+      <button onClick="{{ onPrint }}" style="font:inherit;font-size:13px;font-weight:600;padding:8px 16px;border-radius:999px;border:none;background:#1F3160;color:#fff;cursor:pointer" style-hover="background:#2B4180">พิมพ์ / บันทึก PDF</button>
+      <button onClick="{{ loadSample }}" style="font:inherit;font-size:13px;padding:7px 14px;border-radius:999px;border:1px solid #E0CFB7;background:#fff;color:#1E2540;cursor:pointer" style-hover="background:#FBF4EA">โหลดข้อมูลตัวอย่าง</button>
+      <button onClick="{{ clearAll }}" style="font:inherit;font-size:13px;padding:7px 14px;border-radius:999px;border:1px solid #E0CFB7;background:#fff;color:#C23B2C;cursor:pointer" style-hover="background:#FBEDEB">{{ clearLabel }}</button>
+    </div>
+  </div>
+</div>
+
+<div data-pages style="display:flex;flex-direction:column;align-items:center;gap:28px;padding:28px 24px 96px">
+
+  <!-- หน้า 1 สรุป -->
+  <div data-page data-screen-label="01 สรุป" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+    <div style="background:#1F3160;padding:28px 44px;display:flex;align-items:center;gap:20px">
+      <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:96px;height:96px;border-radius:14px;object-fit:cover;flex:none">
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+        <div style="font-size:12px;font-weight:600;letter-spacing:.16em;color:#E9A23B">DO DD CAR INSPECTION</div>
+        <div style="font-size:28px;font-weight:700;line-height:1.25;color:#fff">รายงานผลการตรวจสภาพรถยนต์</div>
+        <div style="font-size:13px;color:#F6E8D6">Pre-purchase Vehicle Inspection Report</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;width:150px">
+        <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#B9C3DA">เลขที่รายงาน</div><input data-k="reportNo" value="{{ f.reportNo }}" onInput="{{ onField }}" placeholder="DD-000000-00" style="border:none;border-bottom:1px solid rgba(246,232,214,.35);outline:none;background:transparent;color:#fff;font-size:14px;font-weight:600;padding:1px 0;width:100%"></div>
+        <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#B9C3DA">วันที่ตรวจ</div><input data-k="date" value="{{ f.date }}" onInput="{{ onField }}" placeholder="วว/ดด/ปปปป" style="border:none;border-bottom:1px solid rgba(246,232,214,.35);outline:none;background:transparent;color:#fff;font-size:14px;font-weight:600;padding:1px 0;width:100%"></div>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:18px;padding:22px 44px 18px">
+      <div style="background:#FBF4EA;border-radius:16px;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:8px;align-items:baseline">
+          <input data-k="brand" value="{{ f.brand }}" onInput="{{ onField }}" placeholder="ยี่ห้อ" style="border:none;outline:none;background:transparent;font-size:24px;font-weight:700;width:120px;padding:0">
+          <input data-k="model" value="{{ f.model }}" onInput="{{ onField }}" placeholder="รุ่น" style="border:none;outline:none;background:transparent;font-size:24px;font-weight:700;flex:1;min-width:0;padding:0;color:#3D6FB4">
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px">
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">ปีรถ</div><input data-k="year" value="{{ f.year }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:14.5px;font-weight:600;padding:1px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">สี</div><input data-k="color" value="{{ f.color }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:14.5px;font-weight:600;padding:1px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">ทะเบียน</div><input data-k="plate" value="{{ f.plate }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:14.5px;font-weight:600;padding:1px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">เลขไมล์ (กม.)</div><input data-k="odo" value="{{ f.odo }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:14.5px;font-weight:600;padding:1px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">เลขตัวถัง</div><input data-k="vin" value="{{ f.vin }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:13px;padding:2px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">เลขเครื่องยนต์</div><input data-k="engine" value="{{ f.engine }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:13px;padding:2px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">ลูกค้า / ผู้ว่าจ้าง</div><input data-k="customer" value="{{ f.customer }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:13.5px;padding:2px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">โทรศัพท์</div><input data-k="phone" value="{{ f.phone }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:13.5px;padding:2px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column;grid-column:span 2"><div style="font-size:11px;color:#6A6F80">สถานที่ตรวจ</div><input data-k="place" value="{{ f.place }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:13.5px;padding:2px 0;width:100%"></div>
+          <div style="display:flex;flex-direction:column;grid-column:span 2"><div style="font-size:11px;color:#6A6F80">ผู้ตรวจ</div><input data-k="inspector" value="{{ f.inspector }}" onInput="{{ onField }}" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:13.5px;padding:2px 0;width:100%"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:16px;font-weight:700">ผลการตรวจ 90 รายการ</div>
+        <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px">
+          <sc-for list="{{ legend }}" as="lg" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:12px;background:#FBF4EA">
+              <div style="font-size:24px;font-weight:700;line-height:1.1;color:{{ lg.tc }}">{{ lg.n }}</div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#6A6F80"><span style="width:7px;height:7px;border-radius:50%;background:{{ lg.c }};flex:none"></span>{{ lg.th }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+        <sc-for list="{{ structure }}" as="sx" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;border:1px solid #E8DCCB">
+            <div style="font-size:11px;color:#6A6F80;line-height:1.35">{{ sx.label }}</div>
+            <div style="font-size:15px;font-weight:700;color:{{ sx.c }}">{{ sx.val }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;flex:1;min-height:0">
+        <div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:16px;font-weight:700">ประเด็นที่พบและคำแนะนำ</div><div data-screen-only style="font-size:11.5px;color:#6A6F80">คลิกป้ายระดับเพื่อเปลี่ยน</div></div>
+        <sc-for list="{{ findings1 }}" as="fd" hint-placeholder-count="2">
+          <div style="display:grid;grid-template-columns:86px minmax(0,1fr) 220px;gap:12px;align-items:start;padding:10px 12px;border-radius:12px;border:1px solid #E8DCCB">
+            <div data-key="{{ fd.key }}" onClick="{{ onSev }}" style="cursor:pointer;font-size:11.5px;font-weight:600;color:#fff;background:{{ fd.sevC }};border-radius:999px;padding:3px 0;text-align:center">{{ fd.sevTh }}</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:14px;font-weight:600;line-height:1.4">{{ fd.title }} <span style="font-size:11px;font-weight:500;color:#6A6F80">{{ fd.ref }}</span></div>
+              <div style="font-size:12.5px;line-height:1.5;color:{{ fd.factC }}">{{ fd.fact }}</div>
+            </div>
+            <textarea data-key="{{ fd.key }}" value="{{ fd.rec }}" onInput="{{ onRec }}" rows="2" placeholder="คำแนะนำ" style="border:none;border-radius:8px;outline:none;background:#FBF4EA;resize:none;font-size:12.5px;line-height:1.5;padding:6px 8px;width:100%;box-sizing:border-box"></textarea>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noFindings }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:#6A6F80;padding:10px 12px;border-radius:12px;background:#FBF4EA">ไม่พบข้อบกพร่องจากรายการที่ตรวจ</div>
+        </sc-if>
+        <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ false }}">
+          <div style="align-self:flex-end;font-size:12px;font-weight:600;color:#1F3160;background:#F6E8D6;border-radius:999px;padding:3px 12px">{{ moreText }} →</div>
+        </sc-if>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.5">
+          <div>รถคันหมายเลขทะเบียน <span style="font-weight:700">{{ plateText }}</span> ได้ผ่านการตรวจสอบและรับรองเทคนิคตามมาตรฐาน Do DD Car Inspection เป็นที่เรียบร้อยแล้ว</div>
+          <div style="height:24px;border-bottom:1px solid #1E2540"></div>
+          <div style="display:flex;justify-content:space-between;color:#6A6F80"><span>ลายมือชื่อผู้ตรวจสอบ</span><span>วันที่ {{ f.date }}</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.5">
+          <div>ลูกค้ารับทราบผลการตรวจเช็คเป็นที่เรียบร้อยแล้ว</div>
+          <div style="height:42px;border-bottom:1px solid #1E2540"></div>
+          <div style="display:flex;justify-content:space-between;color:#6A6F80"><span>ลายมือชื่อลูกค้า / ผู้ว่าจ้าง</span><span>วันที่ ............</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>โทร 065-394-9980 · LINE 0653949980 · Facebook: ดู ดีดี Do DD รับดูรถมือสองเชียงใหม่</span><span style="font-weight:600">1 / {{ total }}</span></div>
+  </div>
+
+  <!-- ประเด็นที่พบ (ต่อ) -->
+  <sc-for list="{{ contPages }}" as="cp" hint-placeholder-count="0">
+    <div data-page data-screen-label="ประเด็นที่พบ (ต่อ)" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+      <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+        <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+        <div style="font-size:17px;font-weight:700;color:#fff;flex:1">ประเด็นที่พบและคำแนะนำ (ต่อ)</div>
+        <div style="font-size:12px;color:#F6E8D6">{{ vehLine }}</div>
+      </div>
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:20px 44px 16px">
+        <sc-for list="{{ cp.items }}" as="fd" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:86px minmax(0,1fr) 220px;gap:12px;align-items:start;padding:10px 12px;border-radius:12px;border:1px solid #E8DCCB">
+            <div data-key="{{ fd.key }}" onClick="{{ onSev }}" style="cursor:pointer;font-size:11.5px;font-weight:600;color:#fff;background:{{ fd.sevC }};border-radius:999px;padding:3px 0;text-align:center">{{ fd.sevTh }}</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:14px;font-weight:600;line-height:1.4">{{ fd.title }} <span style="font-size:11px;font-weight:500;color:#6A6F80">{{ fd.ref }}</span></div>
+              <div style="font-size:12.5px;line-height:1.5;color:{{ fd.factC }}">{{ fd.fact }}</div>
+            </div>
+            <textarea data-key="{{ fd.key }}" value="{{ fd.rec }}" onInput="{{ onRec }}" rows="2" placeholder="คำแนะนำ" style="border:none;border-radius:8px;outline:none;background:#FBF4EA;resize:none;font-size:12.5px;line-height:1.5;padding:6px 8px;width:100%;box-sizing:border-box"></textarea>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ cp.label }}</span></div>
+    </div>
+  </sc-for>
+
+  <!-- เช็กลิสต์ -->
+  <sc-for list="{{ checkPages }}" as="pg" hint-placeholder-count="3">
+    <div data-page data-screen-label="เช็กลิสต์" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+      <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+        <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+        <div style="font-size:17px;font-weight:700;color:#fff;flex:1">รายการตรวจ 90 จุด</div>
+        <div style="font-size:12px;color:#F6E8D6">{{ vehLine }}</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;padding:6px 44px 0">
+        <div style="display:grid;grid-template-columns:30px minmax(0,1fr) repeat(5,50px) 168px;align-items:end;font-size:10px;color:#6A6F80;padding:6px 0 4px;text-align:center">
+          <div style="text-align:left">ข้อ</div><div style="text-align:left">รายการ</div><div>ปกติ</div><div>ข้อบกพร่อง</div><div>ตรวจเพิ่ม</div><div>ไม่ได้ตรวจ</div><div>ไม่มี</div><div style="text-align:left;padding-left:8px">หมายเหตุ</div>
+        </div>
+        <sc-for list="{{ pg.stations }}" as="stn" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0 5px">
+            <span style="width:22px;height:22px;border-radius:50%;background:#1F3160;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">{{ stn.n }}</span>
+            <span style="font-size:14.5px;font-weight:700">{{ stn.th }}</span>
+            <span style="font-size:11px;color:#6A6F80">{{ stn.en }}</span>
+            <span style="flex:1"></span>
+            <span style="font-size:11px;color:#4A4F60;background:#F6E8D6;border-radius:999px;padding:1px 10px">{{ stn.summary }}</span>
+          </div>
+          <sc-for list="{{ stn.items }}" as="it" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:30px minmax(0,1fr) repeat(5,50px) 168px;align-items:center;height:23px;font-size:13px;background:{{ it.zebra }};border-radius:4px">
+              <div style="font-size:11px;font-weight:600;color:#6A6F80;padding-left:4px">{{ it.no }}</div>
+              <div style="display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden">{{ it.name }}<sc-if value="{{ it.opt }}" hint-placeholder-val="{{ false }}"><span style="font-size:9.5px;color:#9A7A4E;background:#F6E8D6;border-radius:999px;padding:0 6px;line-height:15px">ถ้ามี</span></sc-if></div>
+              <sc-for list="{{ it.cells }}" as="c" hint-placeholder-count="5">
+                <div data-no="{{ c.no }}" data-k="{{ c.k }}" onClick="{{ onStatus }}" style="height:23px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                  <div style="width:15px;height:15px;box-sizing:border-box;border-radius:50%;border:1.5px solid {{ c.bd }};background:{{ c.bg }};color:#fff;font-size:9.5px;line-height:12px;text-align:center;font-weight:700">{{ c.mark }}</div>
+                </div>
+              </sc-for>
+              <input data-no="{{ it.no }}" value="{{ it.note }}" onInput="{{ onNote }}" placeholder="{{ it.hint }}" style="border:none;outline:none;background:transparent;font-size:11.5px;padding:0 0 0 8px;width:100%;box-sizing:border-box;color:{{ it.noteC }}">
+            </div>
+          </sc-for>
+        </sc-for>
+        <sc-if value="{{ pg.first }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:11px;color:#6A6F80;line-height:1.5;padding-top:14px">
+            <div><b style="color:#1E2540">ปกติ</b> ตรวจแล้วไม่พบความผิดปกติภายใต้ขอบเขตที่ตรวจ · <b style="color:#1E2540">ตรวจเพิ่ม</b> พบอาการแต่ยังยืนยันสาเหตุไม่ได้ · <b style="color:#1E2540">ไม่มี</b> รถไม่มีระบบหรืออุปกรณ์นั้น</div>
+            <div>ข้อ 87–90 ปกติ หมายถึง ไม่พบร่องรอยจากจุดที่ตรวจ · เลขข้อคงตามแบบฟอร์มเดิมเพื่ออ้างอิง</div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ pg.label }}</span></div>
+    </div>
+  </sc-for>
+
+  <!-- หน้า 5 ตัวถัง ค่าสี สแกน -->
+  <div data-page data-screen-label="05 ตัวถังและสแกน" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+    <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+      <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+      <div style="font-size:17px;font-weight:700;color:#fff;flex:1">ตัวถัง ค่าสี และผลสแกนระบบ</div>
+      <div style="font-size:12px;color:#F6E8D6">{{ vehLine }}</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:22px;padding:20px 44px 0">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:16px;font-weight:700;padding-bottom:4px">ค่าความหนาสีรายชิ้น</div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 90px repeat(3,62px) 236px;font-size:10.5px;color:#6A6F80;padding:0 0 2px;text-align:center"><div style="text-align:left;padding-left:8px">ชิ้นส่วน</div><div>ค่าที่วัด (µm)</div><div>สีเดิม</div><div>ทำสี</div><div>โป๊ว/ซ่อม</div><div style="text-align:left;padding-left:10px">หมายเหตุ (ระบุเมื่อพบ)</div></div>
+        <sc-for list="{{ panels }}" as="pn" hint-placeholder-count="12">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 90px repeat(3,62px) 236px;align-items:center;height:28px;font-size:13px;background:{{ pn.zebra }};border-radius:6px">
+            <div style="padding-left:8px">{{ pn.name }}</div>
+            <input data-i="{{ pn.i }}" value="{{ pn.pv }}" onInput="{{ onPv }}" placeholder="—" style="border:none;outline:none;background:transparent;text-align:center;font-size:13px;font-weight:600;width:100%">
+            <sc-for list="{{ pn.cells }}" as="c" hint-placeholder-count="3">
+              <div data-i="{{ c.i }}" data-k="{{ c.k }}" onClick="{{ onPaint }}" style="height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer"><div style="width:15px;height:15px;box-sizing:border-box;border-radius:50%;border:1.5px solid {{ c.bd }};background:{{ c.bg }};color:#fff;font-size:9.5px;line-height:12px;text-align:center;font-weight:700">{{ c.mark }}</div></div>
+            </sc-for>
+            <input data-i="{{ pn.i }}" value="{{ pn.pn }}" onInput="{{ onPn }}" style="border:none;outline:none;background:transparent;font-size:12px;padding-left:10px;width:100%;box-sizing:border-box">
+          </div>
+        </sc-for>
+        <div style="font-size:11px;color:#6A6F80;padding-top:4px">ค่าความหนาสีใช้ประกอบการพิจารณาร่วมกับการตรวจด้วยสายตา เกณฑ์แตกต่างตามยี่ห้อและรุ่น · ภาพวัดค่าสีอยู่หมวด 1.6</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;align-items:baseline;gap:10px;padding-bottom:4px"><div style="font-size:16px;font-weight:700">ผลสแกนระบบ (OBD / DTC)</div><span style="flex:1"></span><span style="font-size:11.5px;color:#6A6F80">เครื่องมือ</span><input data-k="scanner" value="{{ f.scanner }}" onInput="{{ onField }}" placeholder="เช่น LAUNCH X431" style="border:none;border-bottom:1px solid #E8DCCB;outline:none;background:transparent;font-size:12.5px;width:150px"></div>
+        <div style="display:grid;grid-template-columns:96px 170px 110px minmax(0,1fr);gap:0 10px;font-size:10.5px;color:#6A6F80;padding:0 8px 2px"><div>รหัส</div><div>ระบบ</div><div>สถานะ</div><div>หมายเหตุ / ขั้นตอนถัดไป</div></div>
+        <sc-for list="{{ dtc }}" as="d" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:96px 170px 110px minmax(0,1fr);gap:0 10px;align-items:center;height:28px;font-size:12.5px;background:{{ d.zebra }};border-radius:6px;padding:0 8px">
+            <input data-i="{{ d.i }}" data-k="code" value="{{ d.code }}" onInput="{{ onDtc }}" placeholder="—" style="border:none;outline:none;background:transparent;font-weight:600;width:100%">
+            <input data-i="{{ d.i }}" data-k="sys" value="{{ d.sys }}" onInput="{{ onDtc }}" style="border:none;outline:none;background:transparent;width:100%">
+            <input data-i="{{ d.i }}" data-k="stat" value="{{ d.stat }}" onInput="{{ onDtc }}" placeholder="Current / History" style="border:none;outline:none;background:transparent;width:100%">
+            <input data-i="{{ d.i }}" data-k="note" value="{{ d.note }}" onInput="{{ onDtc }}" style="border:none;outline:none;background:transparent;width:100%">
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;background:#FBF4EA;border-radius:14px;padding:14px 18px">
+        <div style="font-size:14px;font-weight:700">ขอบเขตและข้อจำกัดของการตรวจ</div>
+        <div style="display:flex;flex-direction:column;gap:3px;font-size:12px;line-height:1.6;color:#3A3F52">
+          <div>· ผลการตรวจอ้างอิงจากการตรวจด้วยสายตา เครื่องมือวัด และการทดลองขับ ณ วันและเวลาที่ตรวจ โดยไม่มีการถอดแยกชิ้นส่วน</div>
+          <div>· “ไม่พบร่องรอย” หมายถึงไม่พบสิ่งบ่งชี้จากจุดที่ตรวจได้ ไม่ใช่การยืนยันว่าไม่เคยเกิดเหตุ</div>
+          <div>· รหัสปัญหาแสดงตามผลสแกน ณ วันที่ตรวจ การระบุสาเหตุต้องวินิจฉัยเพิ่มเติม</div>
+          <div>· รายงานนี้ไม่ใช่การรับประกันสภาพรถในอนาคต</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ scanLabel }}</span></div>
+  </div>
+
+  <!-- หน้าภาพประกอบตามหมวด -->
+  <sc-for list="{{ photoPages }}" as="pp" hint-placeholder-count="3">
+    <div data-page data-screen-label="{{ pp.screen }}" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+      <div style="height:60px;flex:none;box-sizing:border-box;background:#1F3160;padding:0 44px;display:flex;align-items:center;gap:12px">
+        <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:34px;height:34px;border-radius:8px;object-fit:cover">
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;line-height:1.4;color:#E9A23B">ภาพประกอบการตรวจ</div>
+          <div style="font-size:15px;font-weight:700;line-height:1.35;color:#fff">{{ pp.group }}</div>
+        </div>
+        <div style="font-size:12px;color:#F6E8D6">{{ vehLine }}</div>
+      </div>
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:16px 44px 14px">
+        <div style="display:flex;align-items:center;gap:10px;height:28px;flex:none;white-space:nowrap">
+          <span style="font-size:12px;font-weight:700;color:#fff;background:#1F3160;border-radius:999px;padding:2px 10px;flex:none">{{ pp.code }}</span>
+          <span style="font-size:17px;font-weight:700;flex:none">{{ pp.th }}</span>
+          <span style="font-size:11.5px;color:#6A6F80;flex:none">{{ pp.sub }}</span>
+          <span style="flex:1"></span>
+          <sc-if value="{{ pp.hasRel }}" hint-placeholder-val="{{ false }}"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#4A4F60;background:#F6E8D6;border-radius:999px;padding:2px 10px">{{ pp.rel }}</span></sc-if>
+          <button data-screen-only data-cat="{{ pp.cat }}" onClick="{{ onBulk }}" style="flex:none;font:inherit;font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;border:1px solid #1F3160;background:#fff;color:#1F3160;cursor:pointer" style-hover="background:#1F3160;color:#fff">+ หลายรูป · {{ pp.pc }}</button>
+        </div>
+
+        <sc-if value="{{ pp.isGrid }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:{{ pp.cols }};justify-content:center;gap:12px 16px">
+            <sc-for list="{{ pp.photos }}" as="ph" hint-placeholder-count="8">
+              <div data-photo style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                <div style="position:relative;aspect-ratio:16/9"><dodd-photo pid="{{ ph.id }}" placeholder="{{ ph.slotPh }}" radius="10"></dodd-photo></div>
+                <div style="display:flex;align-items:center;gap:6px;height:20px">
+                  <span style="font-size:10.5px;font-weight:700;color:#9A7A4E;flex:none">{{ ph.code }}</span>
+                  <input data-k="{{ ph.id }}" value="{{ ph.label }}" onInput="{{ onLab }}" placeholder="{{ ph.labelPh }}" style="flex:1;min-width:0;height:20px;line-height:20px;border:none;outline:none;background:transparent;font-size:13px;font-weight:700;padding:0">
+                </div>
+                <textarea data-k="{{ ph.id }}" value="{{ ph.cap }}" onInput="{{ onCap }}" rows="1" placeholder="หมายเหตุ ถ้าพบสิ่งผิดปกติ" style="height:{{ pp.noteH }};box-sizing:border-box;border:none;border-bottom:1px dotted #E0CFB7;outline:none;background:transparent;resize:none;font-size:12px;line-height:18px;padding:0 0 1px;width:100%;color:#B2321F"></textarea>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ pp.hasDesc }}" hint-placeholder-val="{{ false }}">
+          <div style="height:92px;flex:none;box-sizing:border-box;background:#FBF4EA;border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:12.5px;font-weight:700;line-height:18px">คำบรรยายสภาพโดยรวม</div>
+            <textarea data-k="{{ pp.descKey }}" value="{{ pp.desc }}" onInput="{{ onDesc }}" placeholder="{{ pp.descPh }}" style="flex:1;min-height:0;border:none;outline:none;background:transparent;resize:none;font-size:12.5px;line-height:1.55;padding:0;width:100%"></textarea>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ pp.isPaint }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(5,auto);grid-auto-flow:column;gap:14px">
+            <sc-for list="{{ pp.photos }}" as="ph" hint-placeholder-count="10">
+              <div style="display:grid;grid-template-columns:200px minmax(0,1fr);gap:10px;align-items:start;min-height:150px">
+                <div data-photo-frame style="position:relative;aspect-ratio:16/9"><dodd-photo pid="{{ ph.id }}" placeholder="{{ ph.label }}" radius="10"></dodd-photo></div>
+                <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+                  <div style="display:flex;flex-direction:column"><span style="font-size:10.5px;font-weight:700;color:#9A7A4E">{{ ph.code }}</span><span style="font-size:13.5px;font-weight:700;line-height:1.3">{{ ph.label }}</span></div>
+                  <div style="display:flex;align-items:baseline;gap:4px"><input data-i="{{ ph.pi }}" value="{{ ph.pv }}" onInput="{{ onPv }}" placeholder="—" style="width:58px;border:none;border-bottom:1px solid #E0CFB7;outline:none;background:transparent;font-size:18px;font-weight:700;padding:0"><span style="font-size:11px;color:#6A6F80">µm</span></div>
+                  <div style="display:flex;gap:4px">
+                    <sc-for list="{{ ph.chips }}" as="c" hint-placeholder-count="3">
+                      <div data-i="{{ c.i }}" data-k="{{ c.k }}" onClick="{{ onPaint }}" style="cursor:pointer;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.th }}</div>
+                    </sc-for>
+                  </div>
+                  <textarea data-k="{{ ph.id }}" value="{{ ph.cap }}" onInput="{{ onCap }}" rows="2" placeholder="หมายเหตุ ถ้าพบสิ่งผิดปกติ" style="border:none;border-bottom:1px dotted #E0CFB7;outline:none;background:transparent;resize:none;font-size:11.5px;line-height:1.45;padding:0 0 2px;width:100%;box-sizing:border-box;color:#B2321F"></textarea>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ pp.isObd }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:540px;justify-content:center;gap:12px">
+            <sc-for list="{{ pp.photos }}" as="ph" hint-placeholder-count="2">
+              <div data-photo style="display:flex;flex-direction:column;gap:3px">
+                <div style="position:relative;aspect-ratio:16/9"><dodd-photo pid="{{ ph.id }}" placeholder="{{ ph.slotPh }}" radius="12"></dodd-photo></div>
+                <div style="display:flex;align-items:center;gap:6px;height:20px">
+                  <span style="font-size:10.5px;font-weight:700;color:#9A7A4E;flex:none">{{ ph.code }}</span>
+                  <input data-k="{{ ph.id }}" value="{{ ph.label }}" onInput="{{ onLab }}" placeholder="{{ ph.labelPh }}" style="flex:1;min-width:0;height:20px;line-height:20px;border:none;outline:none;background:transparent;font-size:13.5px;font-weight:700;padding:0">
+                </div>
+                <textarea data-k="{{ ph.id }}" value="{{ ph.cap }}" onInput="{{ onCap }}" rows="2" placeholder="หมายเหตุ ถ้าพบสิ่งผิดปกติ" style="height:38px;box-sizing:border-box;border:none;border-bottom:1px dotted #E0CFB7;outline:none;background:transparent;resize:none;font-size:12px;line-height:18px;padding:0 0 1px;width:100%;color:#B2321F"></textarea>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#FBF4EA;border-radius:12px;padding:12px 16px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:10px 20px">
+            <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">เครื่องมือสแกน</div><input data-k="scanner" value="{{ f.scanner }}" onInput="{{ onField }}" placeholder="เช่น LAUNCH X431" style="border:none;border-bottom:1px solid #E0CFB7;outline:none;background:transparent;font-size:13.5px;font-weight:600;padding:2px 0;width:100%"></div>
+            <div style="display:flex;flex-direction:column"><div style="font-size:11px;color:#6A6F80">สรุปผลอ่านโค้ด · ตารางรหัสอยู่หน้า {{ scanPage }}</div><input data-k="dtcSum" value="{{ f.dtcSum }}" onInput="{{ onField }}" placeholder="เช่น ไม่พบโค้ดทำงานผิดปกติ" style="border:none;border-bottom:1px solid #E0CFB7;outline:none;background:transparent;font-size:13.5px;font-weight:600;padding:2px 0;width:100%"></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ pp.isBat }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ pp.photos }}" as="ph" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:400px minmax(0,1fr);gap:16px;align-items:start">
+                <div data-photo-frame style="position:relative;aspect-ratio:16/9"><dodd-photo pid="{{ ph.id }}" placeholder="{{ ph.label }}" radius="12"></dodd-photo></div>
+                <div style="display:flex;flex-direction:column;gap:10px;min-width:0;padding-top:2px">
+                  <div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:10.5px;font-weight:700;color:#9A7A4E">{{ ph.code }}</span><span style="font-size:16px;font-weight:700;line-height:1.35">{{ ph.label }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:11px;color:#6A6F80">{{ ph.mLabel }}</div><input data-k="{{ ph.mKey }}" value="{{ ph.mVal }}" onInput="{{ onField }}" placeholder="{{ ph.mPh }}" style="border:none;border-bottom:1px solid #E0CFB7;outline:none;background:transparent;font-size:16px;font-weight:700;padding:2px 0;width:100%"></div>
+                  <textarea data-k="{{ ph.id }}" value="{{ ph.cap }}" onInput="{{ onCap }}" rows="3" placeholder="หมายเหตุ ถ้าพบสิ่งผิดปกติ" style="height:76px;box-sizing:border-box;border:none;border-bottom:1px dotted #E0CFB7;outline:none;background:transparent;resize:none;font-size:12px;line-height:18px;padding:0 0 1px;width:100%;color:#B2321F"></textarea>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <div style="height:34px;flex:none;box-sizing:border-box;background:#F6E8D6;padding:0 44px;display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ pp.label }}</span></div>
+    </div>
+  </sc-for>
+
+  <!-- หน้าสุดท้าย สรุปสิ่งที่พบจากภาพ -->
+  <sc-for list="{{ sumPages }}" as="sp" hint-placeholder-count="1">
+    <div data-page data-screen-label="สรุปจากภาพประกอบ" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+      <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+        <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+        <div style="font-size:17px;font-weight:700;color:#fff;flex:1">{{ sp.title }}</div>
+        <div style="font-size:12px;color:#F6E8D6">{{ vehLine }}</div>
+      </div>
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:20px 44px 16px">
+        <sc-if value="{{ sp.first }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12px;color:#6A6F80;line-height:1.5;padding-bottom:6px">รวมหมายเหตุใต้ภาพที่ระบุความผิดปกติ เรียงตามหมวด อ้างอิงรหัสภาพและหน้าที่อยู่</div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:58px 170px 150px minmax(0,1fr) 40px;gap:0 10px;font-size:10.5px;color:#6A6F80;padding:0 10px 4px"><div>รหัสภาพ</div><div>หมวด</div><div>ตำแหน่ง</div><div>สิ่งที่พบ</div><div style="text-align:right">หน้า</div></div>
+        <sc-for list="{{ sp.rows }}" as="r" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:58px 170px 150px minmax(0,1fr) 40px;gap:0 10px;align-items:start;padding:7px 10px;font-size:12.5px;line-height:1.45;background:{{ r.zebra }};border-radius:6px">
+            <div style="font-weight:700;color:#9A7A4E">{{ r.code }}</div>
+            <div style="color:#4A4F60">{{ r.cat }}</div>
+            <div style="font-weight:600">{{ r.label }}</div>
+            <div style="color:#B2321F">{{ r.cap }}</div>
+            <div style="text-align:right;color:#6A6F80">{{ r.page }}</div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noNotes }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:#6A6F80;padding:10px 12px;border-radius:12px;background:#FBF4EA">ไม่มีหมายเหตุความผิดปกติจากภาพประกอบ</div>
+        </sc-if>
+      </div>
+      <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ sp.label }}</span></div>
+    </div>
+  </sc-for>
+
+  <!-- ภาคผนวก 1 วิธีอ่านรายงาน -->
+  <div data-page data-screen-label="ภาคผนวก 1 วิธีอ่านรายงาน" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+    <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+      <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#E9A23B">ภาคผนวก · คำแนะนำและคำอธิบาย</div>
+        <div style="font-size:16px;font-weight:700;color:#fff;line-height:1.3">วิธีอ่านรายงานและขั้นตอนถัดไป</div>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:22px;padding:24px 44px 18px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:16px;font-weight:700">สถานะผลตรวจรายข้อ</div>
+        <div style="display:flex;flex-direction:column;border:1px solid #E8DCCB;border-radius:14px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center;padding:10px 16px;font-size:13px"><div style="display:flex;align-items:center;gap:8px;font-weight:700"><span style="width:12px;height:12px;border-radius:50%;background:#2F8A5B"></span>ปกติ</div><div style="color:#3A3F52">ตรวจแล้วไม่พบความผิดปกติภายใต้ขอบเขตที่ตรวจ</div></div>
+          <div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center;padding:10px 16px;font-size:13px;background:#FBF6EF"><div style="display:flex;align-items:center;gap:8px;font-weight:700"><span style="width:12px;height:12px;border-radius:50%;background:#C23B2C"></span>พบข้อบกพร่อง</div><div style="color:#3A3F52">พบความผิดปกติที่มีหลักฐาน รายละเอียดอยู่ในหน้าสรุปและหมายเหตุรายข้อ</div></div>
+          <div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center;padding:10px 16px;font-size:13px"><div style="display:flex;align-items:center;gap:8px;font-weight:700"><span style="width:12px;height:12px;border-radius:50%;background:#C97D12"></span>ต้องตรวจเพิ่ม</div><div style="color:#3A3F52">พบอาการหรือร่องรอย แต่ยังยืนยันสาเหตุไม่ได้จากการตรวจครั้งนี้</div></div>
+          <div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center;padding:10px 16px;font-size:13px;background:#FBF6EF"><div style="display:flex;align-items:center;gap:8px;font-weight:700"><span style="width:12px;height:12px;border-radius:50%;background:#5F6773"></span>ไม่ได้ตรวจ</div><div style="color:#3A3F52">ตรวจไม่ได้ในวันตรวจ โดยระบุเหตุผลไว้ในหมายเหตุ</div></div>
+          <div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center;padding:10px 16px;font-size:13px"><div style="display:flex;align-items:center;gap:8px;font-weight:700"><span style="width:12px;height:12px;border-radius:50%;background:#9AA1AC"></span>ไม่มี</div><div style="color:#3A3F52">รถคันนี้ไม่มีระบบหรืออุปกรณ์นั้น</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:16px;font-weight:700">ระดับความเร่งด่วนของประเด็นที่พบ</div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+          <div style="display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:14px;background:#FBF4EA"><span style="align-self:flex-start;font-size:12px;font-weight:700;color:#fff;background:#C23B2C;border-radius:999px;padding:2px 12px">เร่งด่วน</span><div style="font-size:12.5px;line-height:1.55;color:#3A3F52">เกี่ยวกับความปลอดภัย หรือมีผลต่อการตัดสินใจซื้ออย่างมาก ควรตรวจสอบหรือแก้ไขก่อนตัดสินใจ</div></div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:14px;background:#FBF4EA"><span style="align-self:flex-start;font-size:12px;font-weight:700;color:#fff;background:#C97D12;border-radius:999px;padding:2px 12px">ควรแก้ไข</span><div style="font-size:12.5px;line-height:1.55;color:#3A3F52">ควรซ่อมหรือวินิจฉัยเพิ่มเติม ใช้ประกอบการต่อรองราคาได้</div></div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:14px;background:#FBF4EA"><span style="align-self:flex-start;font-size:12px;font-weight:700;color:#fff;background:#3D6FB4;border-radius:999px;padding:2px 12px">ข้อสังเกต</span><div style="font-size:12.5px;line-height:1.55;color:#3A3F52">ตำหนิหรือการสึกหรอตามการใช้งาน ติดตามสภาพต่อได้</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:16px;font-weight:700">สิ่งที่ควรทำต่อหลังรับรายงาน</div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.55"><span style="width:24px;height:24px;border-radius:50%;background:#1F3160;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">1</span><div>อ่านหน้าสรุป (หน้า 1) โดยเริ่มจากประเด็นระดับเร่งด่วนและควรแก้ไข</div></div>
+          <div style="display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.55"><span style="width:24px;height:24px;border-radius:50%;background:#1F3160;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">2</span><div>รายการ “ต้องตรวจเพิ่ม” ควรให้ศูนย์บริการหรืออู่ที่เชี่ยวชาญวินิจฉัยก่อนตัดสินใจซื้อ</div></div>
+          <div style="display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.55"><span style="width:24px;height:24px;border-radius:50%;background:#1F3160;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">3</span><div>ขอสมุดบำรุงรักษาหรือประวัติเข้าศูนย์จากผู้ขาย แล้วเทียบเลขไมล์กับรายงานนี้</div></div>
+          <div style="display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.55"><span style="width:24px;height:24px;border-radius:50%;background:#1F3160;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">4</span><div>ตรวจเล่มทะเบียน: เลขตัวถังและเลขเครื่องยนต์ต้องตรงกับตัวรถ ดูประวัติการเปลี่ยนสีและการโอน</div></div>
+          <div style="display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.55"><span style="width:24px;height:24px;border-radius:50%;background:#1F3160;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">5</span><div>ใช้รายการที่พบประกอบการต่อรองราคา หรือขอให้ผู้ขายแก้ไขก่อนรับรถ</div></div>
+          <div style="display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.55"><span style="width:24px;height:24px;border-radius:50%;background:#1F3160;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">6</span><div>หากรถถูกซ่อมหรือล้างหลังวันตรวจ ผลในรายงานนี้จะไม่ครอบคลุมส่วนนั้น ควรนัดตรวจซ้ำ</div></div>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:14px;background:#1F3160;border-radius:14px;padding:14px 20px;color:#fff">
+        <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;font-weight:700">มีคำถามเกี่ยวกับผลตรวจ</div><div style="font-size:12.5px;color:#F6E8D6">โทร 065-394-9980 · LINE 0653949980 · Facebook: ดู ดีดี Do DD รับดูรถมือสองเชียงใหม่</div></div>
+      </div>
+    </div>
+    <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ appx1 }}</span></div>
+  </div>
+
+  <!-- ภาคผนวก 2 ค่าความหนาสี -->
+  <div data-page data-screen-label="ภาคผนวก 2 ค่าความหนาสี" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+    <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+      <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#E9A23B">ภาคผนวก · คำแนะนำและคำอธิบาย</div>
+        <div style="font-size:16px;font-weight:700;color:#fff;line-height:1.3">ค่าความหนาของสีรถจากโรงงาน</div>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 44px 18px">
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:18px;border-radius:16px;background:#FBF4EA"><div style="font-size:14px;font-weight:600;color:#6A6F80">รถญี่ปุ่น</div><div style="font-size:34px;font-weight:700;color:#1F3160;line-height:1.2">90–120</div><div style="font-size:13px;color:#6A6F80">ไมครอน (โดยประมาณ)</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:18px;border-radius:16px;background:#FBF4EA"><div style="font-size:14px;font-weight:600;color:#6A6F80">รถยุโรป</div><div style="font-size:34px;font-weight:700;color:#1F3160;line-height:1.2">110–130</div><div style="font-size:13px;color:#6A6F80">ไมครอน (โดยประมาณ)</div></div>
+      </div>
+      <div style="font-size:13px;line-height:1.6;color:#3A3F52;text-align:center;text-wrap:pretty"><b style="color:#1E2540">หมายเหตุ</b> การตรวจความหนาของสีเป็นเพียงส่วนหนึ่งเท่านั้น ซึ่งต้องขึ้นอยู่กับทีมงานตรวจสอบ พิจารณา จากร่องรอยการทำสีเพิ่มเติม</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:16px;font-weight:700">ตัวอย่าง</div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <img src="assets/paint-example-filler.jpg" alt="ค่าความหนาสี 1062 ไมครอน" style="width:100%;aspect-ratio:1100/618;object-fit:cover;border-radius:12px;display:block">
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:12px;font-weight:700;color:#fff;background:#C23B2C;border-radius:999px;padding:1px 10px;flex:none">1062 µm</span><span style="font-size:13px;font-weight:600;line-height:1.45">มีการเคาะโป๊วสี เกิดจาก เฉี่ยวชน หรือ อุบัติเหตุ</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <img src="assets/paint-example-original.jpg" alt="ค่าความหนาสี 111 ไมครอน" style="width:100%;aspect-ratio:1100/618;object-fit:cover;border-radius:12px;display:block">
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:12px;font-weight:700;color:#fff;background:#2F8A5B;border-radius:999px;padding:1px 10px;flex:none">111 µm</span><span style="font-size:13px;font-weight:600;line-height:1.45">ค่าความหนาของสีเดิมจากโรงงานผู้ผลิต</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;border:1px solid #E8DCCB;border-radius:14px;padding:16px 20px">
+        <div style="font-size:15px;font-weight:700">วิธีอ่านค่าความหนาสี</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.6;color:#3A3F52">
+          <div>· เทียบค่าของแต่ละชิ้นกับชิ้นข้างเคียงบนรถคันเดียวกัน ชิ้นที่ค่าต่างจากชิ้นอื่นชัดเจนอาจผ่านการทำสีมาแล้ว</div>
+          <div>· ค่าที่สูงผิดปกติหลายเท่า (หลักหลายร้อยถึงพันไมครอน) มักพบในจุดที่มีการโป๊วสี ดังตัวอย่างด้านบน</div>
+          <div>· ค่าที่ต่ำกว่าช่วงโรงงาน อาจเกิดจากการขัดสีลบรอยจนชั้นเคลือบบางลง</div>
+          <div>· ชิ้นส่วนพลาสติก เช่น กันชน วัดค่าด้วยเครื่องวัดชนิดนี้ไม่ได้ ใช้การตรวจด้วยสายตาประกอบ</div>
+          <div>· ค่าความหนาสีของรถคันนี้อยู่ในตารางหน้า {{ scanPage }} และภาพวัดค่าสีหน้า {{ paintPage }}</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ appx2 }}</span></div>
+  </div>
+
+  <!-- ภาคผนวก 3 ชิ้นส่วนตัวถังและแชสซี -->
+  <div data-page data-screen-label="ภาคผนวก 3 ชิ้นส่วนตัวถัง" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+    <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+      <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#E9A23B">ภาคผนวก · คำแนะนำและคำอธิบาย</div>
+        <div style="font-size:16px;font-weight:700;color:#fff;line-height:1.3">ชิ้นส่วนตัวถังและแชสซีรถยนต์ · Body &amp; Chassis</div>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;padding:20px 44px 16px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;font-weight:700;color:#fff;background:#1F3160;border-radius:999px;padding:3px 14px">พื้นผิวด้านนอก · Outer Panel</span>
+        <span style="font-size:11.5px;color:#4A4F60;background:#F6E8D6;border-radius:999px;padding:2px 10px">ความเสียหายบริเวณนี้อยู่ในระดับ 1</span>
+      </div>
+      <img src="assets/body-outer-panel.jpg" alt="ชิ้นส่วนพื้นผิวด้านนอก" style="width:640px;align-self:center;display:block">
+      <div style="height:1px;background:#E8DCCB"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;font-weight:700;color:#fff;background:#1F3160;border-radius:999px;padding:3px 14px">โครงสร้างหลัก · Main Structure / Chassis</span>
+        <span style="font-size:11.5px;color:#4A4F60;background:#F6E8D6;border-radius:999px;padding:2px 10px">ความเสียหายบริเวณนี้อยู่ในระดับ 2–3</span>
+      </div>
+      <img src="assets/body-main-structure.jpg" alt="ชิ้นส่วนโครงสร้างหลัก" style="width:660px;align-self:center;display:block">
+      <div style="font-size:11.5px;color:#6A6F80;text-align:center">รายละเอียดแต่ละระดับอยู่ในหน้าถัดไป · ผลตรวจโครงสร้างหลักของรถคันนี้ (ข้อ 87–90) อยู่ในหน้า 1</div>
+    </div>
+    <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ appx3 }}</span></div>
+  </div>
+
+  <!-- ภาคผนวก 4 ระดับความเสียหาย -->
+  <div data-page data-screen-label="ภาคผนวก 4 ระดับความเสียหาย" style="width:794px;height:1123px;box-sizing:border-box;background:#fff;box-shadow:0 1px 3px rgba(30,37,64,.10),0 10px 30px rgba(30,37,64,.08);display:flex;flex-direction:column;font-family:'Bai Jamjuree',sans-serif;color:#1E2540;overflow:hidden;flex:none">
+    <div style="background:#1F3160;padding:14px 44px;display:flex;align-items:center;gap:12px">
+      <img src="assets/dodd-logo.jpg" alt="DO DD" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#E9A23B">ภาคผนวก · คำแนะนำและคำอธิบาย</div>
+        <div style="font-size:16px;font-weight:700;color:#fff;line-height:1.3">ระดับความเสียหาย</div>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;padding:20px 44px 16px">
+      <div style="display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:14px 16px;border-radius:14px;border:1px solid #E8DCCB">
+        <div style="width:44px;height:44px;border-radius:12px;background:#3D6FB4;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><span style="font-size:9px;font-weight:600">ระดับ</span><span style="font-size:20px;font-weight:700">1</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.55;color:#3A3F52">
+          <div style="font-size:14.5px;font-weight:700;color:#1E2540">ความเสียหายเบา <span style="font-size:12px;font-weight:500;color:#6A6F80">(ภายนอก/ชิ้นส่วนที่ถอดเปลี่ยนได้)</span></div>
+          <div>เป็นความเสียหายที่เกิดขึ้นกับ "เปลือกนอก" ของรถยนต์ ชิ้นส่วนเหล่านี้ถูกออกแบบมาให้ถอดน็อตเปลี่ยนได้</div>
+          <div><b style="color:#1E2540">จุดที่เกิดเหตุ:</b> ฝากระโปรงหน้า-หลัง, กันชน, บังโคลน (แก้มข้าง), บานประตูภายนอก, หลังคา</div>
+          <div style="font-weight:700;color:#1E2540;padding-top:2px">ความเสี่ยง/ปัญหาที่ตามมา</div>
+          <div>• ความสวยงาม: สีอาจเพี้ยนจากตัวรถเดิมหากอู่พ่นสีไม่ดี</div>
+          <div>• ราคาขายต่อ: ตกเล็กน้อยตามประวัติการเคลม แต่ไม่กระทบต่อความปลอดภัยในการขับขี่</div>
+          <div>• การใช้งาน: หากซ่อมไม่ดี อาจมีเสียงลมเข้า หรือน้ำรั่วซึมตามขอบยางประตู</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:14px 16px;border-radius:14px;border:1px solid #E8DCCB">
+        <div style="width:44px;height:44px;border-radius:12px;background:#C97D12;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><span style="font-size:9px;font-weight:600">ระดับ</span><span style="font-size:20px;font-weight:700">2</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.55;color:#3A3F52">
+          <div style="font-size:14.5px;font-weight:700;color:#1E2540">ความเสียหายปานกลาง <span style="font-size:12px;font-weight:500;color:#6A6F80">(โครงสร้างส่วนหน้าและส่วนควบ)</span></div>
+          <div>ความเสียหายเริ่มลึกเข้าถึงชั้นในที่ต้องมีการ "ดึง ดัด หรือตัดต่อ" ชิ้นส่วนเหล่านี้ทำหน้าที่ยึดอุปกรณ์สำคัญอย่างหม้อน้ำและไฟหน้า</div>
+          <div><b style="color:#1E2540">จุดที่เกิดเหตุ:</b> คานรับแรงกระแทก, คานหม้อน้ำ, ซุ้มล้อด้านใน, แผงท้าย</div>
+          <div style="font-weight:700;color:#1E2540;padding-top:2px">ความเสี่ยง/ปัญหาที่ตามมา</div>
+          <div>• ระบบระบายความร้อน: หากคานหม้อน้ำเบี้ยว อาจส่งผลให้พัดลมหรือหม้อน้ำไม่อยู่ในตำแหน่งที่เหมาะสม</div>
+          <div>• การตั้งศูนย์ล้อ: หากซุ้มล้อ เสียรูป อาจทำให้การตั้งศูนย์ล้อทำได้ยากขึ้น รถอาจมีอาการกินซ้ายหรือขวา</div>
+          <div>• สนิม: จุดที่มีการเชื่อมใหม่มักเสี่ยงต่อการเกิดสนิมในอนาคตหากพ่นกันสนิมไม่ดีพอ</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:14px 16px;border-radius:14px;border:1px solid #E8DCCB">
+        <div style="width:44px;height:44px;border-radius:12px;background:#C23B2C;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><span style="font-size:9px;font-weight:600">ระดับ</span><span style="font-size:20px;font-weight:700">3</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.55;color:#3A3F52">
+          <div style="font-size:14.5px;font-weight:700;color:#1E2540">ความเสียหายหนัก <span style="font-size:12px;font-weight:500;color:#6A6F80">(โครงสร้างหลัก/แชสซี)</span></div>
+          <div>ถือเป็น "อุบัติเหตุหนัก" เนื่องจากกระทบต่อโครงสร้างนิรภัย ที่ปกป้องผู้โดยสาร</div>
+          <div><b style="color:#1E2540">จุดที่เกิดเหตุ:</b> เสาเอ (A-Pillar), เสาบี (B-Pillar), เสาซี (C-Pillar), แชสซีหน้า, พื้นรถ, ซุ้มโช้ค</div>
+          <div style="font-weight:700;color:#1E2540;padding-top:2px">ความเสี่ยง/ปัญหาที่ตามมา</div>
+          <div>• ความปลอดภัย: โครงสร้างที่เคยผ่านการชนหนักและดัดกลับ จะสูญเสียความแข็งแรง หากเกิดอุบัติเหตุซ้ำ จุดนั้นจะไม่สามารถรับแรงกระแทกได้ตามมาตรฐานเดิมโรงงาน</div>
+          <div>• สมรรถนะการขับขี่: รถอาจมีอาการ "เสียศูนย์" ถาวร ยางสึกหรอผิดปกติ หรือมีเสียงดังเอี๊ยดอ๊าดจากตัวถังขณะเลี้ยวหรือขึ้นเนิน</div>
+          <div>• ระบบความปลอดภัย: เซนเซอร์ถุงลมนิรภัยหรือการทำงานของม่านนิรภัยอาจผิดเพี้ยน</div>
+          <div>• ราคาขายต่อ: ราคาตกฮวบ และเต็นท์รถหรือผู้ซื้อส่วนใหญ่จะปฏิเสธการซื้อ</div>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:grid;grid-template-columns:118px minmax(0,1fr);gap:16px;align-items:end;background:#FBF4EA;border-radius:16px;padding:14px 20px 0 12px;overflow:hidden">
+        <img src="assets/dodd-mascot.jpg" alt="DO DD Inspector" style="width:118px;display:block;mix-blend-mode:multiply">
+        <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:16px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:700;color:#fff;background:#1F3160;border-radius:999px;padding:3px 14px">คำแนะนำเพิ่มเติมสำหรับลูกค้า "ดูดีดี"</span>
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.55">
+            <div><b style="color:#3D6FB4">ถ้าโดนระดับ 1</b> ซื้อได้สบายใจ ถ้าเก็บงานสีมาเนียน</div>
+            <div><b style="color:#C97D12">ถ้าโดนระดับ 2</b> ต้องเช็คงานซ่อมว่าเนี๊ยบไหม และควรต่อรองราคาลงมา</div>
+            <div><b style="color:#C23B2C">ถ้าโดนระดับ 3</b> ควรพิจารณาอย่างรอบคอบ และให้ผู้เชี่ยวชาญตรวจโครงสร้างเพิ่มเติมก่อนตัดสินใจ เนื่องจากมีผลต่อความปลอดภัยในการขับขี่ครับ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#F6E8D6;padding:10px 44px;display:flex;justify-content:space-between;font-size:10.5px;color:#4A4F60"><span>DO DD Car Inspection · {{ f.reportNo }}</span><span style="font-weight:600">{{ appx4 }}</span></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ITEMS={1:'ไฟหน้า สูง/ต่ำ',2:'ไฟท้าย (หรี่/เบรก)',3:'ไฟหรี่ ไฟส่องป้ายทะเบียน',4:'ไฟเลี้ยว ซ้าย/ขวา',5:'ไฟฉุกเฉิน',6:'ไฟหน้าปัด',7:'ไฟคอนโซล',8:'ไฟห้องโดยสาร',9:'ระบบปัดน้ำฝน Auto/Manual',10:'ระบบไล่ฝ้า',11:'ระบบกระจกไฟฟ้า',12:'ระบบเซ็นเซอร์ถอยหลัง',13:'ม่านไฟฟ้า',14:'ไฟเบรก',15:'ระบบเครื่องเสียง',16:'พวงมาลัยมัลติฟังก์ชัน',17:'แตร',18:'เบาะไฟฟ้าฝั่งคนขับ',19:'เบาะไฟฟ้าฝั่งผู้โดยสาร',20:'กระจกมองข้างปรับไฟฟ้า',21:'กระจกมองข้างพับไฟฟ้า',22:'ระบบสตาร์ท Push Start',23:'ระบบปรับอากาศ Auto/Manual',24:'สัญญาณเตือนคาดเข็มขัดนิรภัย',25:'กล้องมองหลังขณะถอย',26:'ที่เปิดฝาถังน้ำมัน',27:'กลไกเปิดห้องสัมภาระ',28:'กลไกเปิดฝากระโปรงหน้า',29:'ที่จุดบุหรี่',30:'ช่องต่ออุปกรณ์ไฟฟ้า',31:'ยางอะไหล่และเครื่องมือประจำรถ',32:'ชุดก้านต่อพวงมาลัย',33:'บูทยาง',34:'ลูกหมาก',35:'ยางหุ้มเพลาขับ ตัวนอก/ตัวใน',36:'ซีลรั่วซึมน้ำมันเกียร์',37:'ซีลรั่วซึมอ่างน้ำมันเครื่อง',38:'ล้อแม็ก (คด/ดุ้ง)',39:'สภาพยางและปีผลิต',40:'การทำงานของโช้คอัพ',41:'ท่อไอเสียและจุดยึด',42:'ยางแท่นเครื่อง แท่นเกียร์',43:'การรั่วซึมของเพลาหลัง',44:'ระบบเบรก (ใต้ท้องรถ)',45:'แผ่นปิดใต้ท้องรถ',46:'ป้ายแสดงรายละเอียดรถ',47:'ภายในห้องเครื่องยนต์',48:'ความเรียบร้อยห้องเครื่อง',49:'สายไฟและกล่องฟิวส์',50:'แบตเตอรี่',51:'การสตาร์ทเครื่องยนต์',52:'รอบเดินเบา',53:'สายพาน (สึก/มีเสียง)',54:'เสียงเครื่องยนต์',55:'ท่อยางต่างๆ',56:'ระดับน้ำมันเบรก',57:'ระดับน้ำมันเครื่อง',58:'ระดับน้ำมันเกียร์',59:'หมุนพวงมาลัยสุด (เสียงดัง)',60:'ชุดคลัตช์/เกียร์ Auto/Manual',61:'อัตราเร่งเครื่องยนต์',62:'เสียงผิดปกติขณะขับ',63:'อุณหภูมิเครื่องยนต์',64:'การเปลี่ยนเกียร์ (กระตุก)',65:'เลี้ยววงแคบ (เสียงดัง)',66:'ศูนย์ล้อ (ปล่อยพวงมาลัย)',67:'พวงมาลัยสั่นที่ความเร็วสูง',68:'ระบบขับเคลื่อน 2WD/4WD',69:'ระบบควบคุมความเร็วอัตโนมัติ',70:'ทางขรุขระ/เนิน (เสียงดัง)',71:'การทำงานของระบบเบรก',72:'ระยะเบรก',73:'เบรกมือ',74:'เกียร์ Paddle Shift',75:'คอนโซลหน้า (รื้อ/แตกหัก)',76:'คอนโซลกลาง (รื้อ/แตกหัก)',77:'ปุ่มควบคุมต่างๆ',78:'เบาะนั่ง',79:'แผงประตู',80:'ผ้าเพดาน',81:'ที่บังแดด',82:'เข็มขัดนิรภัย (ดึงกลับ)',83:'พรม (กลิ่นอับ/ความชื้น)',84:'การปิดประตู',85:'ช่องแอร์',86:'หนังหุ้มพวงมาลัยและหัวเกียร์',87:'ร่องรอยการชนหนักถึงคาน/เสา A B C',88:'ร่องรอยการจมน้ำหรือแช่น้ำ',89:'ร่องรอยการพลิกคว่ำ',90:'ร่องรอยการตัดต่อตัวถัง หัว/ท้าย'};
+const OPT=new Set([10,13,18,19,22,43,69,74]);
+const HINT={39:'ปียาง หน้า / หลัง',50:'ค่าที่วัด / ปีที่เปลี่ยน'};
+const STATIONS=[
+  {id:1,th:'ตัวถัง โครงสร้าง และภายนอก',en:'Body, Structure & Exterior',items:[87,89,90,88,84,26,27,28,31,38,39]},
+  {id:2,th:'ไฟส่องสว่างภายนอก',en:'Exterior Lighting',items:[1,2,3,4,5,14]},
+  {id:3,th:'สภาพภายในห้องโดยสาร',en:'Interior Condition',items:[75,76,77,78,79,80,81,82,83,85,86]},
+  {id:4,th:'ระบบไฟฟ้าและอุปกรณ์ภายใน',en:'Electrical & Comfort',items:[6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,29,30]},
+  {id:5,th:'ห้องเครื่องยนต์และเกียร์',en:'Engine Bay & Transmission',items:[46,47,48,49,50,51,52,53,54,55,56,57,58,59,60]},
+  {id:6,th:'ใต้ท้องรถและช่วงล่าง',en:'Underbody & Suspension',items:[32,33,34,35,36,37,40,41,42,43,44,45]},
+  {id:7,th:'ทดลองขับ',en:'Road Test',items:[61,62,63,64,65,66,67,68,69,70,71,72,73,74]}
+];
+const CHECK_PAGES=[[1,2,3],[4,5],[6,7]];
+const STATUS=[{k:'P',th:'ปกติ',c:'#2F8A5B'},{k:'D',th:'ข้อบกพร่อง',c:'#C23B2C'},{k:'F',th:'ตรวจเพิ่ม',c:'#C97D12'},{k:'X',th:'ไม่ได้ตรวจ',c:'#5F6773'},{k:'N',th:'ไม่มี',c:'#9AA1AC'}];
+const SEV={C:{th:'เร่งด่วน',c:'#C23B2C'},A:{th:'ควรแก้ไข',c:'#C97D12'},O:{th:'ข้อสังเกต',c:'#3D6FB4'}};
+const SEV_NEXT={C:'A',A:'O',O:'C'};
+const PANELS=['ฝากระโปรงหน้า','บังโคลนหน้าซ้าย','ประตูหน้าซ้าย','ประตูหลังซ้าย','บังโคลนหลังซ้าย','ฝาท้าย','บังโคลนหลังขวา','ประตูหลังขวา','ประตูหน้าขวา','บังโคลนหน้าขวา','หลังคา','ซับในรอบคัน (แผงเพจ)'];
+const PAINT=[{k:'O',th:'สีเดิม',s:'เดิม',c:'#2F8A5B'},{k:'R',th:'ทำสี',s:'ทำสี',c:'#C97D12'},{k:'F',th:'โป๊ว/ซ่อม',s:'โป๊ว',c:'#C23B2C'}];
+const STRUCT=[[87,'การชนหนักถึงคาน / เสา A B C'],[88,'การจมน้ำหรือแช่น้ำ'],[89,'การพลิกคว่ำ'],[90,'การตัดต่อตัวถัง หัว/ท้าย']];
+const STRUCT_VAL={P:['ไม่พบร่องรอย','#2F8A5B'],D:['พบร่องรอย','#C23B2C'],F:['ต้องตรวจเพิ่ม','#C97D12'],X:['ไม่ได้ตรวจ','#5F6773'],N:['—','#9AA1AC']};
+const GROUPS={1:'ส่วนที่ 1 · ภายนอก โครงสร้าง และช่วงล่าง',2:'ส่วนที่ 2 · ภายใน เอกสาร และระบบไฟฟ้า'};
+const PHOTO_CATS=[
+  {id:'ext',g:1,code:'1.1',th:'สภาพภายนอกโดยรวม',n:8,per:8,kind:'grid',cols:2,desc:1,labels:['ด้านหน้า','ด้านหลัง','ด้านซ้าย','ด้านขวา','มุมหน้าซ้าย','มุมหน้าขวา','มุมหลังซ้าย','มุมหลังขวา']},
+  {id:'stf',g:1,code:'1.2',th:'โครงสร้างด้านหน้า',n:8,per:8,kind:'grid',cols:2,desc:1,rel:[87,90]},
+  {id:'sts',g:1,code:'1.3',th:'โครงสร้างด้านข้าง',n:8,per:8,kind:'grid',cols:2,desc:1,rel:[87,89]},
+  {id:'str',g:1,code:'1.4',th:'โครงสร้างด้านท้าย',n:8,per:8,kind:'grid',cols:2,desc:1,rel:[87,90]},
+  {id:'sus',g:1,code:'1.5',th:'ช่วงล่างและยาง',n:8,per:8,kind:'grid',cols:2,desc:1,rel:[32,33,34,35,38,39,40,44]},
+  {id:'pnt',g:1,code:'1.6',th:'ตรวจสีและวัดค่าความหนาสี',n:10,per:10,kind:'paint'},
+  {id:'dfc',g:1,code:'1.7',th:'ภาพตำหนิ',n:27,per:9,kind:'grid',cols:3,noteRows:2,labelPh:'ระบุตำแหน่งตำหนิ'},
+  {id:'int',g:2,code:'2.1',th:'สภาพภายในโดยรวม',n:16,per:8,kind:'grid',cols:2,desc:1,rel:[75,76,77,78,79,80,81,82,83,85,86]},
+  {id:'fld',g:2,code:'2.2',th:'ตรวจสอบน้ำท่วม',n:8,per:8,kind:'grid',cols:2,desc:1,rel:[88,83]},
+  {id:'vin',g:2,code:'2.3',th:'หมายเลขตัวถังและเอกสาร',n:8,per:8,kind:'grid',cols:2,desc:1,rel:[46]},
+  {id:'obd',g:2,code:'2.4',th:'อ่านโค้ด (OBD)',n:2,per:2,kind:'obd',labels:['ผลอ่านโค้ด','ผลอ่านโค้ด (ต่อ)']},
+  {id:'bat',g:2,code:'2.5',th:'ตรวจสอบแบตเตอรี่',n:3,per:3,kind:'battery',labels:['สุขภาพแบตเตอรี่','ทดสอบไดสตาร์ท','ทดสอบไดชาร์จ'],rel:[50,51]}
+];
+const BAT_M=[{k:'batHealth',l:'ผลวัดสุขภาพแบตเตอรี่',ph:'เช่น 85% · 520 CCA'},{k:'batStart',l:'แรงดันไฟขณะสตาร์ท',ph:'เช่น 10.2 V'},{k:'batCharge',l:'แรงดันไฟชาร์จ',ph:'เช่น 14.2 V'}];
+const KEY='dodd-report-v1';
+const blank=()=>({f:{},st:{},note:{},sev:{},rec:{},ps:{},pv:{},pn:{},cap:{},plab:{},desc:{},dtc:[{},{},{},{}]});
+function sample(){
+  const s=blank();
+  s.f={reportNo:'DD-261021-01',date:'21/10/2026',brand:'Toyota',model:'Yaris Ativ',year:'2023',color:'เทา',plate:'',odo:'41,847',vin:'',engine:'',customer:'',phone:'',place:'เชียงใหม่',inspector:'',scanner:'',
+    batHealth:'เริ่มต่ำกว่าเกณฑ์เล็กน้อย ใช้งานปกติ',batStart:'ปกติ',batCharge:'ปกติ',dtcSum:'ไม่พบโค้ดทำงานผิดปกติ'};
+  for(let i=1;i<=90;i++) s.st[i]='P';
+  [13,18,19,29,43,68,74].forEach(n=>s.st[n]='N');
+  s.st[50]='D';
+  s.note={39:'ยางหน้า/หลัง ปี 2023',50:'สุขภาพแบตเตอรี่เริ่มต่ำกว่าเกณฑ์เล็กน้อย แรงดันสตาร์ทและชาร์จปกติ'};
+  s.sev={i50:'O',p2:'O',p3:'O'};
+  s.rec={i50:'ติดตามสภาพ และวางแผนเปลี่ยนตามอายุการใช้งาน'};
+  PANELS.forEach((_,i)=>s.ps[i]='O'); s.ps[3]='R';
+  s.pn={2:'รอยบุบเล็ก (ลักยิ้ม)',3:'ทำสีเก็บริ้วรอยตามการใช้งาน ไม่พบแผลใหญ่'};
+  s.plab={'dfc-0':'ประตูหน้าซ้าย'};
+  s.desc={ext:'สภาพภายนอกโดยรวมสมบูรณ์ พบรอยบุบเล็กที่ประตูหน้าซ้าย และร่องรอยการทำสีเก็บริ้วรอยที่ประตูหลังซ้าย'};
+  s.cap={'dfc-0':'รอยบุบเล็ก (ลักยิ้ม)','pnt-3':'ทำสีเก็บริ้วรอย ไม่พบแผลใหญ่','bat-0':'สุขภาพแบตเริ่มต่ำกว่าเกณฑ์เล็กน้อย'};
+  return s;
+}
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.st) return {...blank(),...s}; }catch(e){} return sample(); }
+
+class Component extends DCLogic {
+  state = {...load(),pk:[]};
+  componentDidMount(){
+    this._onPh=()=>{ if(window.doddPhotos) window.doddPhotos.keys().then(pk=>this.setState({pk})); };
+    window.addEventListener('dodd-photos-changed',this._onPh);
+    this._onPh();
+  }
+  componentWillUnmount(){ window.removeEventListener('dodd-photos-changed',this._onPh); }
+  componentDidUpdate(){ try{ const {_arm,pk,...rest}=this.state; localStorage.setItem(KEY,JSON.stringify(rest)); }catch(e){} }
+  put(group,k,v){ this.setState(s=>({[group]:{...s[group],[k]:v}})); }
+  onField=e=>this.put('f',e.target.dataset.k,e.target.value);
+  onNote=e=>this.put('note',e.target.dataset.no,e.target.value);
+  onRec=e=>this.put('rec',e.target.dataset.key,e.target.value);
+  onPv=e=>this.put('pv',e.target.dataset.i,e.target.value);
+  onPn=e=>this.put('pn',e.target.dataset.i,e.target.value);
+  onCap=e=>this.put('cap',e.target.dataset.k,e.target.value);
+  onLab=e=>this.put('plab',e.target.dataset.k,e.target.value);
+  onDesc=e=>this.put('desc',e.target.dataset.k,e.target.value);
+  onStatus=e=>{ const {no,k}=e.currentTarget.dataset; this.setState(s=>({st:{...s.st,[no]:s.st[no]===k?undefined:k}})); };
+  onPaint=e=>{ const {i,k}=e.currentTarget.dataset; this.setState(s=>({ps:{...s.ps,[i]:s.ps[i]===k?undefined:k}})); };
+  onSev=e=>{ const key=e.currentTarget.dataset.key; const def=key[0]==='p'?'O':'A'; this.setState(s=>({sev:{...s.sev,[key]:SEV_NEXT[s.sev[key]||def]}})); };
+  onDtc=e=>{ const i=+e.target.dataset.i,k=e.target.dataset.k,v=e.target.value; this.setState(s=>({dtc:s.dtc.map((r,j)=>j===i?{...r,[k]:v}:r)})); };
+  onPrint=()=>window.print();
+  onBulk=e=>{ const c=e.currentTarget.dataset.cat; if(window.doddPhotos) window.doddPhotos.pick(c); };
+  loadSample=()=>this.setState({...sample(),_arm:false});
+  clearAll=()=>{
+    if(!this.state._arm){ this.setState({_arm:true}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({_arm:false}),3000); return; }
+    this.setState({...blank(),_arm:false});
+    if(window.doddPhotos) window.doddPhotos.clearAll();
+  };
+
+  renderVals(){
+    const s=this.state, st=s.st;
+    const parts=items=>{
+      const c={}; let pend=0;
+      items.forEach(n=>{ if(st[n]) c[st[n]]=(c[st[n]]||0)+1; else pend++; });
+      const p=STATUS.filter(x=>c[x.k]).map(x=>(x.k==='N'?'ไม่มีอุปกรณ์':x.th)+' '+c[x.k]);
+      if(pend) p.push('ยังไม่ลงผล '+pend);
+      return p.join(' · ');
+    };
+    const stationView=id=>{
+      const S=STATIONS.find(x=>x.id===id);
+      return {n:String(S.id),th:S.th,en:S.en,summary:S.items.length+' ข้อ · '+parts(S.items),
+        items:S.items.map((no,idx)=>({no,name:ITEMS[no],opt:OPT.has(no),hint:HINT[no]||'',note:s.note[no]||'',
+          zebra:idx%2?'#FBF6EF':'transparent',
+          noteC:(st[no]==='D'||st[no]==='F')&&!s.note[no]?'#C23B2C':'inherit',
+          cells:STATUS.map(x=>{const on=st[no]===x.k;return {no,k:x.k,bg:on?x.c:'transparent',bd:on?x.c:'#C4CBD6',mark:on?'✓':''};})}))};
+    };
+
+    const pkSet=new Set(this.state.pk||[]);
+    const pcount=cat=>{ let n=0; for(let i=0;i<cat.n;i++) if(pkSet.has(cat.id+'-'+i)) n++; return n; };
+    const photoPages=[], notes=[];
+    PHOTO_CATS.forEach(cat=>{
+      const pages=Math.ceil(cat.n/cat.per);
+      for(let p=0;p<pages;p++){
+        const from=p*cat.per, to=Math.min(cat.n,from+cat.per), photos=[];
+        for(let i=from;i<to;i++){
+          const id=cat.id+'-'+i, def=(cat.labels&&cat.labels[i])||'';
+          const label=cat.kind==='paint'?PANELS[i]:cat.kind==='battery'?def:(s.plab[id]!=null?s.plab[id]:def);
+          const ph={id,code:cat.code+'.'+(i+1),label,slotPh:label||('ภาพ '+cat.code+'.'+(i+1)),labelPh:cat.labelPh||'ระบุตำแหน่ง',cap:s.cap[id]||''};
+          if(cat.kind==='paint'){ ph.pi=i; ph.pv=s.pv[i]||''; ph.chips=PAINT.map(x=>{const on=s.ps[i]===x.k;return {i,k:x.k,th:x.s,bg:on?x.c:'#fff',bd:on?x.c:'#E0CFB7',fg:on?'#fff':'#6A6F80'};}); }
+          if(cat.kind==='battery'){ const m=BAT_M[i]; ph.mLabel=m.l; ph.mKey=m.k; ph.mVal=s.f[m.k]||''; ph.mPh=m.ph; }
+          photos.push(ph);
+          if(ph.cap.trim()) notes.push({code:ph.code,cat:cat.th,label:label||'—',cap:ph.cap,pp:photoPages.length});
+        }
+        photoPages.push({group:GROUPS[cat.g],code:cat.code,th:cat.th,cat:cat.id,pc:pcount(cat)+'/'+cat.n,screen:cat.code+' '+cat.th+(pages>1?' ('+(p+1)+'/'+pages+')':''),
+          sub:pages>1?('ภาพ '+(from+1)+'–'+to+' จาก '+cat.n):(cat.n+' ภาพ'),
+          hasRel:!!cat.rel,rel:cat.rel?((cat.rel.length<=4?'เช็กลิสต์ข้อ '+cat.rel.join(', '):'เช็กลิสต์ '+cat.rel.length+' ข้อ')+' · '+parts(cat.rel)):'',
+          isGrid:cat.kind==='grid',isPaint:cat.kind==='paint',isObd:cat.kind==='obd',isBat:cat.kind==='battery',
+          hasDesc:!!cat.desc&&p===pages-1,descKey:cat.id,desc:(s.desc||{})[cat.id]||'',descPh:'สรุปสภาพโดยรวมของหมวด'+cat.th,
+          cols:cat.cols===3?'repeat(3,minmax(0,1fr))':'repeat(2,276px)',noteH:cat.noteRows===2?'38px':'20px',photos});
+      }
+    });
+    const checkPages=CHECK_PAGES.map((ids,i)=>({first:i===0,stations:ids.map(stationView)}));
+
+    const all=Object.keys(ITEMS).map(Number);
+    const cnt={P:0,D:0,F:0,X:0,N:0}; let pending=0;
+    all.forEach(n=>{ if(st[n]) cnt[st[n]]++; else pending++; });
+    const legend=[...STATUS.map(x=>({th:x.k==='N'?'ไม่มีอุปกรณ์':x.th,n:cnt[x.k],c:x.c,tc:cnt[x.k]&&(x.k==='D'||x.k==='F')?x.c:'#1E2540'})),{th:'ยังไม่ลงผล',n:pending,c:'#DDE2E9',tc:pending?'#C23B2C':'#1E2540'}];
+    const structure=STRUCT.map(([no,label])=>{const v=STRUCT_VAL[st[no]]||['ยังไม่ลงผล','#9AA1AC'];return {label,val:v[0],c:v[1]};});
+
+    const fs=[];
+    all.forEach(n=>{ if(st[n]==='D'||st[n]==='F'){ const key='i'+n; fs.push({key,sv:s.sev[key]||'A',title:ITEMS[n],ref:'ข้อ '+n+' · '+(st[n]==='F'?'ต้องตรวจเพิ่ม':'พบข้อบกพร่อง'),fact:s.note[n]||''}); } });
+    PANELS.forEach((p,i)=>{ const ps=s.ps[i], note=s.pn[i]; if(ps==='R'||ps==='F'||note){ const key='p'+i; fs.push({key,sv:s.sev[key]||'O',title:p+(ps==='R'?' · ทำสี':ps==='F'?' · โป๊ว/ซ่อม':''),ref:'ตัวถัง/สี'+(s.pv[i]?' · '+s.pv[i]+' µm':''),fact:note||''}); } });
+    const ord={C:0,A:1,O:2};
+    fs.sort((a,b)=>ord[a.sv]-ord[b.sv]);
+    const findings=fs.map(x=>({...x,sevTh:SEV[x.sv].th,sevC:SEV[x.sv].c,fact:x.fact||'ยังไม่ระบุรายละเอียดสิ่งที่พบ',factC:x.fact?'#3A3F52':'#C23B2C',rec:s.rec[x.key]||''}));
+
+    const P1=4, PC=10, NR=20;
+    const findings1=findings.slice(0,P1), rest=findings.slice(P1), contPages=[];
+    for(let i=0;i<rest.length;i+=PC) contPages.push({items:rest.slice(i,i+PC)});
+    const sumPages=[];
+    for(let i=0;i<Math.max(notes.length,1);i+=NR) sumPages.push({rows:notes.slice(i,i+NR),first:i===0});
+    const total=1+contPages.length+CHECK_PAGES.length+1+photoPages.length+sumPages.length+4;
+    let pno=1; const lab=()=>(++pno)+' / '+total;
+    contPages.forEach(p=>p.label=lab());
+    checkPages.forEach(p=>p.label=lab());
+    const scanPage=++pno;
+    const photoStart=pno+1;
+    photoPages.forEach(p=>p.label=lab());
+    sumPages.forEach((p,i)=>{p.label=lab(); p.title=i?'สรุปสิ่งที่พบจากภาพประกอบ (ต่อ)':'สรุปสิ่งที่พบจากภาพประกอบ';});
+    notes.forEach((n,i)=>{n.page=String(photoStart+n.pp); n.zebra=i%2?'#FBF6EF':'transparent';});
+    const appx=[lab(),lab(),lab(),lab()];
+    const paintPage=String(photoStart+photoPages.findIndex(p=>p.isPaint));
+
+    const panels=PANELS.map((name,i)=>({i,name,pv:s.pv[i]||'',pn:s.pn[i]||'',zebra:i%2?'#FBF6EF':'transparent',
+      cells:PAINT.map(x=>{const on=s.ps[i]===x.k;return {i,k:x.k,bg:on?x.c:'transparent',bd:on?x.c:'#C4CBD6',mark:on?'✓':''};})}));
+    const dtc=(s.dtc||[]).map((r,i)=>({i,code:r.code||'',sys:r.sys||'',stat:r.stat||'',note:r.note||'',zebra:i%2?'#FBF6EF':'transparent'}));
+
+    const qc=[];
+    if(pending) qc.push({msg:'ยังไม่ลงผล '+pending+' ข้อ (ส่งรายงานไม่ได้จนกว่าจะครบ)',c:'#C23B2C'});
+    const noFact=all.filter(n=>(st[n]==='D'||st[n]==='F')&&!s.note[n]);
+    if(noFact.length) qc.push({msg:'ข้อบกพร่อง/ตรวจเพิ่มที่ยังไม่มีคำอธิบาย: ข้อ '+noFact.join(', '),c:'#C23B2C'});
+    const noReason=all.filter(n=>st[n]==='X'&&!s.note[n]);
+    if(noReason.length) qc.push({msg:'ไม่ได้ตรวจแต่ยังไม่ระบุเหตุผล: ข้อ '+noReason.join(', '),c:'#C97D12'});
+    const noRec=findings.filter(x=>(x.sv==='C'||x.sv==='A')&&!x.rec).length;
+    if(noRec) qc.push({msg:'ประเด็นระดับเร่งด่วน/ควรแก้ไขที่ยังไม่มีคำแนะนำ '+noRec+' รายการ',c:'#C97D12'});
+    const missing=[['brand','ยี่ห้อ'],['model','รุ่น'],['odo','เลขไมล์'],['date','วันที่ตรวจ'],['inspector','ผู้ตรวจ']].filter(([k])=>!s.f[k]).map(x=>x[1]);
+    if(missing.length) qc.push({msg:'ข้อมูลรถยังไม่ครบ: '+missing.join(', '),c:'#C97D12'});
+    const noMeasure=PANELS.filter((_,i)=>(s.ps[i]==='R'||s.ps[i]==='F')&&!s.pv[i]);
+    if(noMeasure.length) qc.push({msg:'ชิ้นที่ทำสี/ซ่อมแต่ยังไม่ใส่ค่าที่วัด: '+noMeasure.join(', '),c:'#9AA1AC'});
+    const noPhoto=PHOTO_CATS.filter(c=>c.id!=='dfc'&&pcount(c)===0).map(c=>c.code);
+    if(noPhoto.length) qc.push({msg:'หมวดภาพที่ยังไม่มีรูป: '+noPhoto.join(', '),c:'#9AA1AC'});
+    const noDesc=PHOTO_CATS.filter(c=>c.desc&&pcount(c)>0&&!((s.desc||{})[c.id]||'').trim()).map(c=>c.code);
+    if(noDesc.length) qc.push({msg:'หมวดที่มีรูปแต่ยังไม่เขียนคำบรรยายสภาพโดยรวม: '+noDesc.join(', '),c:'#9AA1AC'});
+
+    const f=s.f;
+    const vehLine=[[f.brand,f.model].filter(Boolean).join(' '),f.year,f.plate].filter(Boolean).join(' · ');
+    return {
+      f,checkPages,photoPages,total:String(total),legend,structure,findings,noFindings:findings.length===0,panels,dtc,
+      findings1,contPages,hasMore:rest.length>0,moreText:'มีต่อหน้า 2 · อีก '+rest.length+' รายการ',
+      sumPages,noNotes:notes.length===0,appx1:appx[0],appx2:appx[1],appx3:appx[2],appx4:appx[3],paintPage,scanLabel:scanPage+' / '+total,scanPage:String(scanPage),
+      qc,qcOk:qc.length===0,done:(90-pending)+' / 90',vehLine,
+      plateText:f.plate||'................',
+      clearLabel:s._arm?'กดอีกครั้งเพื่อยืนยันล้าง':'ล้างฟอร์มและรูป (เริ่มคันใหม่)',
+      onField:this.onField,onNote:this.onNote,onRec:this.onRec,onPv:this.onPv,onPn:this.onPn,onCap:this.onCap,onLab:this.onLab,onDesc:this.onDesc,
+      onStatus:this.onStatus,onPaint:this.onPaint,onSev:this.onSev,onDtc:this.onDtc,onPrint:this.onPrint,onBulk:this.onBulk,
+      loadSample:this.loadSample,clearAll:this.clearAll
+    };
+  }
+}
+</script>
+</body>
+</html>
