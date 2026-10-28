@@ -678,73 +678,182 @@ class Component extends DCLogic {
   onPaint=e=>{ const {i,k}=e.currentTarget.dataset; this.setState(s=>({ps:{...s.ps,[i]:s.ps[i]===k?undefined:k}})); };
   onSev=e=>{ const key=e.currentTarget.dataset.key; const def=key[0]==='p'?'O':'A'; this.setState(s=>({sev:{...s.sev,[key]:SEV_NEXT[s.sev[key]||def]}})); };
   onDtc=e=>{ const i=+e.target.dataset.i,k=e.target.dataset.k,v=e.target.value; this.setState(s=>({dtc:s.dtc.map((r,j)=>j===i?{...r,[k]:v}:r)})); };
-  onPrint=async()=>{
-    const pages=Array.from(document.querySelectorAll('[data-page]'));
-    if(!pages.length){ alert('ไม่พบหน้ารายงานสำหรับสร้าง PDF'); return; }
-    if(!window.html2canvas || !window.jspdf || !window.jspdf.jsPDF){
-      alert('โหลดระบบสร้าง PDF ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง');
-      return;
-    }
+onPrint=async()=>{
+  const pages=Array.from(document.querySelectorAll('[data-page]'));
+  if(!pages.length){
+    alert('ไม่พบหน้ารายงานสำหรับสร้าง PDF');
+    return;
+  }
+  if(!window.html2canvas || !window.jspdf || !window.jspdf.jsPDF){
+    alert('โหลดระบบสร้าง PDF ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง');
+    return;
+  }
 
-    const button=document.querySelector('[data-screen-only] button');
-    const oldText=button?button.textContent:'';
-    if(button){ button.disabled=true; button.textContent='กำลังสร้าง PDF…'; }
+  const button=document.querySelector('[data-screen-only] button');
+  const oldText=button?button.textContent:'';
+  if(button){
+    button.disabled=true;
+    button.textContent='กำลังสร้าง PDF…';
+  }
 
-    const { jsPDF }=window.jspdf;
-    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-    const changed=[];
-    try{
-      // Hide only empty photo placeholders while exporting; keep their layout space.
-      pages.forEach(page=>{
-        page.querySelectorAll('[data-photo], [data-photo-frame]').forEach(frame=>{
-          const photo=frame.querySelector('dodd-photo');
-          if(photo && !photo.hasAttribute('data-filled')){
-            changed.push({el:frame,visibility:frame.style.visibility});
-            frame.style.visibility='hidden';
-          }
-        });
+  const { jsPDF }=window.jspdf;
+  const pdf=new jsPDF({
+    orientation:'portrait',
+    unit:'mm',
+    format:'a4',
+    compress:true
+  });
+
+  const changed=[];
+  const photoReplacements=[];
+
+  try{
+    // ซ่อนกรอบรูปที่ยังไม่มีรูป โดยคงพื้นที่เดิมไว้
+    pages.forEach(page=>{
+      page.querySelectorAll('[data-photo], [data-photo-frame]').forEach(frame=>{
+        const photo=frame.querySelector('dodd-photo');
+        if(photo && !photo.hasAttribute('data-filled')){
+          changed.push({
+            el:frame,
+            visibility:frame.style.visibility
+          });
+          frame.style.visibility='hidden';
+        }
+      });
+    });
+
+    // แปลงรูปใน Shadow DOM เป็น img ปกติชั่วคราว
+    for(const photo of document.querySelectorAll('dodd-photo[data-filled]')){
+      const rec=photo._rec;
+      const src=photo._url || photo.shadowRoot?.querySelector('img')?.src;
+
+      if(!rec?.blob || !src) continue;
+
+      const replacement=document.createElement('div');
+      replacement.setAttribute('data-filled','');
+      replacement.style.cssText=
+        'position:absolute;inset:0;display:block;overflow:hidden;'+
+        'border-radius:'+(parseFloat(photo.getAttribute('radius'))||10)+
+        'px;background:#F2ECE2;';
+
+      const img=document.createElement('img');
+      img.alt='';
+      img.src=src;
+      img.draggable=false;
+
+      const rot=(rec.rot||0)%360;
+      const odd=rot%180!==0;
+
+      img.style.cssText=
+        'position:absolute;left:50%;top:50%;'+
+        'width:'+(odd?photo.clientHeight:photo.clientWidth)+'px;'+
+        'height:'+(odd?photo.clientWidth:photo.clientHeight)+'px;'+
+        'max-width:none;max-height:none;object-fit:contain;'+
+        'transform:translate(-50%,-50%) rotate('+rot+'deg);'+
+        'display:block;user-select:none;';
+
+      replacement.appendChild(img);
+
+      photoReplacements.push({
+        original:photo,
+        replacement:replacement,
+        parent:photo.parentNode,
+        next:photo.nextSibling
       });
 
-      for(let i=0;i<pages.length;i++){
-        const page=pages[i];
-        const canvas=await window.html2canvas(page,{
-          scale:2,
-          backgroundColor:'#ffffff',
-          useCORS:true,
-          allowTaint:false,
-          logging:false,
-          width:page.offsetWidth,
-          height:page.offsetHeight,
-          windowWidth:Math.max(document.documentElement.clientWidth,page.offsetWidth),
-          onclone:(clonedDoc)=>{
-            const clonedPage=clonedDoc.querySelectorAll('[data-page]')[i];
-            if(!clonedPage) return;
-            clonedPage.style.boxShadow='none';
-            clonedPage.style.margin='0';
-            clonedPage.querySelectorAll('input, textarea').forEach(el=>{
-              // Ensure current typed values appear in the exported page.
-              if(el.tagName==='TEXTAREA') el.textContent=el.value;
-              else el.setAttribute('value',el.value);
-            });
-          }
+      photo.replaceWith(replacement);
+
+      if(!img.complete || !img.naturalWidth){
+        await new Promise(resolve=>{
+          img.onload=resolve;
+          img.onerror=resolve;
         });
-        const image=canvas.toDataURL('image/jpeg',0.94);
-        if(i>0) pdf.addPage('a4','portrait');
-        pdf.addImage(image,'JPEG',0,0,210,297,undefined,'FAST');
-        canvas.width=1;
-        canvas.height=1;
       }
-      const reportNo=document.querySelector('[data-k="reportNo"]')?.value?.trim() || 'DoDD';
-      const safeName=reportNo.replace(/[\\/:*?"<>|]+/g,'-');
-      pdf.save('DoDD-รายงานตรวจสภาพรถ-'+safeName+'.pdf');
-    }catch(err){
-      console.error('PDF export failed:',err);
-      alert('สร้าง PDF ไม่สำเร็จ กรุณาลองอีกครั้ง หากยังไม่ได้ให้ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
-    }finally{
-      changed.forEach(x=>x.el.style.visibility=x.visibility);
-      if(button){ button.disabled=false; button.textContent=oldText; }
     }
-  };
+
+    // สร้าง PDF ทีละหน้า ขนาด A4
+    for(let i=0;i<pages.length;i++){
+      const page=pages[i];
+
+      const canvas=await window.html2canvas(page,{
+        scale:2,
+        backgroundColor:'#ffffff',
+        useCORS:true,
+        allowTaint:false,
+        logging:false,
+        width:page.offsetWidth,
+        height:page.offsetHeight,
+        windowWidth:Math.max(
+          document.documentElement.clientWidth,
+          page.offsetWidth
+        ),
+        onclone:(clonedDoc)=>{
+          const clonedPage=clonedDoc.querySelectorAll('[data-page]')[i];
+          if(!clonedPage) return;
+
+          clonedPage.style.boxShadow='none';
+          clonedPage.style.margin='0';
+
+          clonedPage.querySelectorAll('input, textarea').forEach(el=>{
+            if(el.tagName==='TEXTAREA'){
+              el.textContent=el.value;
+            }else{
+              el.setAttribute('value',el.value);
+            }
+          });
+        }
+      });
+
+      const image=canvas.toDataURL('image/jpeg',0.94);
+
+      if(i>0) pdf.addPage('a4','portrait');
+
+      pdf.addImage(
+        image,
+        'JPEG',
+        0,
+        0,
+        210,
+        297,
+        undefined,
+        'FAST'
+      );
+
+      canvas.width=1;
+      canvas.height=1;
+    }
+
+    const reportNo=
+      document.querySelector('[data-k="reportNo"]')?.value?.trim() || 'DoDD';
+
+    const safeName=reportNo.replace(/[\\/:*?"<>|]+/g,'-');
+
+    pdf.save('DoDD-รายงานตรวจสภาพรถ-'+safeName+'.pdf');
+
+  }catch(err){
+    console.error('PDF export failed:',err);
+    alert('สร้าง PDF ไม่สำเร็จ กรุณาลองอีกครั้ง หากยังไม่ได้ให้ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+
+  }finally{
+    // คืนรูปและองค์ประกอบเดิมหลังสร้าง PDF
+    photoReplacements.reverse().forEach(x=>{
+      if(x.replacement.parentNode){
+        x.replacement.replaceWith(x.original);
+      }else if(x.parent){
+        x.parent.insertBefore(x.original,x.next);
+      }
+    });
+
+    changed.forEach(x=>{
+      x.el.style.visibility=x.visibility;
+    });
+
+    if(button){
+      button.disabled=false;
+      button.textContent=oldText;
+    }
+  }
+};
   onBulk=e=>{ const c=e.currentTarget.dataset.cat; if(window.doddPhotos) window.doddPhotos.pick(c); };
   loadSample=()=>this.setState({...sample(),_arm:false});
   clearAll=()=>{
